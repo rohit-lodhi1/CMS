@@ -1,0 +1,115 @@
+import { Component, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { UserRegistration } from 'src/app/entites/user-registration';
+import { AuthService } from 'src/app/services/auth.service';
+import Swal from 'sweetalert2';
+
+@Component({
+  selector: 'app-registration',
+  templateUrl: './registration.component.html',
+  styleUrls: ['./registration.component.scss']
+})
+export class RegistrationComponent implements OnInit {
+
+
+
+  form: FormGroup;
+
+  constructor(private authService: AuthService,
+    private router: Router, private fb: FormBuilder,
+    private snack: MatSnackBar) {
+    this.form = this.fb.group({
+      // email: ['', [Validators.required, Validators.email]],
+      password: ['',   [Validators.required, this.passwordValidator]],
+      userName:['', [Validators.required, Validators.minLength(3)]],
+  email: new FormControl(null, {
+    validators:  [Validators.required, Validators.email],
+    updateOn: 'blur'
+  })
+
+    });
+
+  }
+  
+  ngOnInit(): void {
+
+  }
+
+  userRegistration: UserRegistration = new UserRegistration();
+  confirmPassword: string = "";
+
+  checkValidations(fieldName: string): boolean {
+    const field = this.form.get(fieldName);
+    return field ? field.invalid && field.touched : false;
+  }
+  
+  registration(){
+    this.form.markAllAsTouched();
+    if (this.form.valid )
+    {
+      this.authService.registration(this.userRegistration).subscribe(
+      (data: any) => {
+  
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'bottom',
+          showConfirmButton: false,
+          timer: 1500,
+          timerProgressBar: true,
+        })
+        Toast.fire({
+          icon: 'success',
+          title: 'registration successful !!'
+        }).then(e => {
+          this.userRegistration = new UserRegistration();
+          this.router.navigate(['login']);
+        })
+      },
+      (err) => {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'bottom-end',
+          showConfirmButton: false,
+          timer: 1500,
+          timerProgressBar: true,
+        })
+        Toast.fire({
+          title: 'User already exists!!',
+          icon: 'error',
+          text: 'Try another username!!!',
+          timer: 5000 // 5 seconds,
+        }).then(e=>{
+          this.userRegistration = new UserRegistration();
+
+        })
+      }
+      )
+    }
+  }
+  
+// Custom password validator function
+passwordValidator(control: AbstractControl): { [key: string]: boolean } | null {
+  const password = control.value;
+
+  if (!password) {
+    return { required: true };
+  }
+
+  // Check if the password contains at least one number, one letter, or one period ('.')
+  if (!/^(?=.*[0-9])(?=.*[A-Za-z]).*$/.test(password) && !password.includes('.')) {
+    return { invalidPassword: true };
+  }
+
+  // Check if the password is at least 8 characters long
+  if (password.length < 8) {
+    return { minLength: true };
+  }
+  
+  return null; // Password is valid
+}
+
+
+  
+}

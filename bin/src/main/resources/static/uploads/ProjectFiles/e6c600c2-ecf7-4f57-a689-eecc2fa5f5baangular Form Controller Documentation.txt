@@ -1,0 +1,67 @@
+Form Required Fields
+
+
+ [formGroup]="form" 
+formControlName="email"
+    <div *ngIf="checkValidations  ('email')" class="text-danger">Email  is
+                            required.</div>
+
+
+
+  form: FormGroup;
+
+private fb: FormBuilder
+this.form= this.fb.group({
+                email: ['', Validators.required],
+                password: ['', Validators.required]
+              });
+             
+
+  checkValidations(fieldName: string): boolean {
+    const field = this.form.get(fieldName);
+    return field ? field.invalid && field.touched : false;
+  }
+  
+
+
+registration(){
+    this.form.markAllAsTouched();
+    if (this.form.valid )
+    {
+      this.authService.registration(this.userRegistration).subscribe(
+      (data: any) => {
+  
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'bottom',
+          showConfirmButton: false,
+          timer: 1500,
+          timerProgressBar: true,
+        })
+        Toast.fire({
+          icon: 'success',
+          title: 'registration successful !!'
+        }).then(e => {
+        })
+      },
+      (err) => {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'bottom-end',
+          showConfirmButton: false,
+          timer: 1500,
+          timerProgressBar: true,
+        })
+        Toast.fire({
+          title: 'Error !!',
+          icon: 'error',
+          text: 'Try again!!!',
+          timer: 5000 // 5 seconds,
+        }).then(e=>{
+      
+        })
+      }
+      )
+    }
+  }
+  
